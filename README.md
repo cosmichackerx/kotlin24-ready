@@ -100,7 +100,7 @@ its own checkout with the runner's Python; it does not install anything and make
 ```yaml
 repos:
   - repo: https://github.com/cosmichackerx/kotlin24-ready
-    rev: v0.1.1
+    rev: v0.1.2
     hooks:
       - id: kotlin24-ready        # report; fails the commit on errors
       # - id: kotlin24-ready-fix  # or: apply the mechanical fixes (the commit then stops so you can review the diff)
