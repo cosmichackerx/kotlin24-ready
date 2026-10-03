@@ -83,6 +83,10 @@ def test_js_compiler_type_fix_and_android_sourcesets():
     assert ids(run(android)) == ["kotlin-android-sourcesets"]
     assert run(android.replace("com.android.library", "com.android.library") + '\nkotlin { androidTarget() }') == []
     assert run('kotlin { sourceSets { } }') == []  # not an Android module
+    # false positives found by the study: KMP libraries applied through a convention-plugin alias
+    kmp_alias = 'plugins { alias(libs.plugins.generic.kmp.library) }\nandroid { namespace = "x" }\nkotlin { sourceSets { commonMain { dependencies { } } } }'
+    assert run(kmp_alias) == []
+    assert run('plugins { alias(libs.plugins.myKotlinMultiplatformLibrary) }\nandroid { namespace = "x" }\nkotlin { sourceSets { val m by getting { } } }') == []
 
 
 def test_ignore_comment_and_disable():
