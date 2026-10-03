@@ -1,0 +1,5 @@
+{
+  "claims": [
+    {"id": "action pin in the README equal the newest release", "file": "README.md", "regex": "kotlin24-ready@v([0-9.]+)", "expect": {"latest_tag": "https://github.com/cosmichackerx/kotlin24-ready"}}
+  ]
+}
