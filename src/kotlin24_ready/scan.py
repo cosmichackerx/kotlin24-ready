@@ -340,8 +340,8 @@ def android_sourcesets(c: Ctx):
         return
     if not re.search(r"com\.android\.(?:application|library|dynamic-feature|test)|\bandroid\s*\{", c.code):
         return
-    if re.search(r"multiplatform|androidTarget|androidLibrary|kotlin\.mpp", c.code):
-        return  # a KMP module's `kotlin { sourceSets }` is not the Kotlin Android extension
+    if re.search(r"multiplatform|\bkmp\b|androidTarget|androidLibrary|kotlin\.mpp|commonMain|commonTest|androidMain|jvmMain|iosMain|applyDefaultHierarchyTemplate|\bsourceSets\s*\{[^{}]*\b(?:common|jvm|ios|js|wasm\w*|native|desktop)\w*(?:Main|Test)\b", c.code, re.I):
+        return  # a KMP module's `kotlin { sourceSets }` (also behind a convention-plugin alias) is not the Kotlin Android extension
     for ka, kb in block_spans(c.nostr, "kotlin"):
         for sn, sa, sb in _inner(c.nostr, ka, kb, "sourceSets"):
             c.add("kotlin-android-sourcesets", sn)
