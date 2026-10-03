@@ -83,7 +83,7 @@ Everything else (language version, `featureFlags`, ABI validation, compilation t
 - uses: actions/checkout@v4
   with:
     fetch-depth: 0          # only needed for pr-mode
-- uses: cosmichackerx/kotlin24-ready@v0.1.0
+- uses: cosmichackerx/kotlin24-ready@v0.1.1
   with:
     path: .
     fail-on: error          # error | warning | never
