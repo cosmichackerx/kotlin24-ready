@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.4 - 2026-10-03
+
+* New rule `agp-minimum` (found by the study: Pokedex with AGP 8.1.3 and KuiklyUI with 7.4.2 stop at "lower than the minimum supported 8.5.2"). Reads the catalog, `id("com.android.*") version` and `com.android.tools.build:gradle:` classpaths; only when the project uses a Kotlin plugin; a nested build with its own settings file is a warning. Not reproduced by the oracle (see README).
+
 ## 0.1.3 - 2026-10-03
 
 Three gaps found by the [recall study](https://github.com/cosmichackerx/kotlin24-ready-study) (public KMP/Compose repositories built with Kotlin Gradle plugin 2.4.20):
