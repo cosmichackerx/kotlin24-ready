@@ -167,6 +167,13 @@ jobs:
           path: tests/fixtures/legacy-app
       - name: It really failed
         run: test "${{ steps.bad.outcome }}" = "failure"
+      - name: Remote pre-commit hook at the published tag (clean fixture passes)
+        run: |
+          pip install pre-commit
+          work="$RUNNER_TEMP/pcr"; rm -rf "$work"; mkdir -p "$work"
+          cp -r tests/fixtures/clean-app/. "$work/"
+          cd "$work" && git init -q && git add -A && git -c user.name=ci -c user.email=ci@example.invalid commit -q -m fixture
+          pre-commit try-repo https://github.com/cosmichackerx/kotlin24-ready kotlin24-ready --ref v0.1.1 --all-files
 
   pre-commit:
     name: pre-commit hook (try-repo)
