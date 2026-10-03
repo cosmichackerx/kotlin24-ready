@@ -168,6 +168,31 @@ jobs:
       - name: It really failed
         run: test "${{ steps.bad.outcome }}" = "failure"
 
+  pre-commit:
+    name: pre-commit hook (try-repo)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+      - run: python -m pip install pre-commit
+      - name: Hook passes on the clean fixture, fails on the legacy one, and the fix hook rewrites it
+        run: |
+          work="$RUNNER_TEMP/pc"
+          rm -rf "$work"; mkdir -p "$work/clean" "$work/legacy"
+          cp -r tests/fixtures/clean-app/. "$work/clean/"
+          cp -r tests/fixtures/legacy-app/. "$work/legacy/"
+          for d in clean legacy; do
+            (cd "$work/$d" && git init -q && git add -A && git -c user.name=ci -c user.email=ci@example.invalid commit -q -m fixture)
+          done
+          (cd "$work/clean" && pre-commit try-repo "$GITHUB_WORKSPACE" kotlin24-ready --all-files)
+          if (cd "$work/legacy" && pre-commit try-repo "$GITHUB_WORKSPACE" kotlin24-ready --all-files); then echo "the hook should fail on the legacy fixture"; exit 1; fi
+          (cd "$work/legacy" && pre-commit try-repo "$GITHUB_WORKSPACE" kotlin24-ready-fix --all-files) || true
+          if (cd "$work/legacy" && git diff --quiet); then echo "the fix hook changed nothing"; exit 1; fi
+
   comment-selftest:
     name: PR mode and sticky comment (same-repo pull requests)
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
