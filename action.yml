@@ -1,5 +1,5 @@
 name: kotlin24-ready
-description: "Find what Kotlin 2.4 removes in the Kotlin Gradle plugin in your Gradle build files, without running Gradle: language version 1.9, KMP targetHierarchy and platform(), Compose compiler options, ABI validation DSL."
+description: "Find what Kotlin 2.4 removes in the Kotlin Gradle plugin from your Gradle build files, without running Gradle."
 author: cosmichackerx
 branding:
   icon: code
