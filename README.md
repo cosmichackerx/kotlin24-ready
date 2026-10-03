@@ -136,7 +136,7 @@ What this does and does not prove:
 A weekly workflow (`.github/workflows/kotlin-watch.yml`, `scripts/watch/watch_kotlin_docs.py`, standard library only) reads the Kotlin 2.4
 compatibility guide and probes for the 2.5 and 2.6 guides. It opens one deduplicated issue when a new guide appears, a section of the 2.4 guide is not in
 `scripts/watch/known_sections.txt`, an API name in a Gradle or Build tools API section is neither mentioned by a rule nor listed in `scripts/watch/triaged.txt`, or a rule anchor no
-longer exists. The baseline lists were written when the watcher started: they mean "known", not "reviewed" (`triaged.txt` names the 30 known gaps, such as the Kotlin/Native
+longer exists. The baseline lists were written when the watcher started: they mean "known", not "reviewed" (`triaged.txt` names the 32 known gaps, such as the Kotlin/Native
 task properties). Section ids and the `Component:` line are a proxy; the guide is prose.
 
 ## How it relates to other tools
