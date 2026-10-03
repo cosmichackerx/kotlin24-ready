@@ -1,0 +1,34 @@
+24:drop-support-for-language-version-1-9-and-the-k1-compiler	Drop support for -language-version=1.9 and the K1 compiler
+24:prohibit-flexible-explicit-nullable-type-arguments-for-java-types	Prohibit flexible explicit nullable type arguments for Java types
+24:prohibit-always-false-is-checks-for-definitely-incompatible-types	Prohibit always-false is checks for definitely incompatible types
+24:prohibit-exposing-types-and-declarations-with-lower-visibility-in-inline-functions	Prohibit exposing types and declarations with lower visibility in inline functions
+24:change-default-use-site-target-selection-for-annotations	Change default use-site target selection for annotations
+24:forbid-implicit-references-to-inaccessible-types	Forbid implicit references to inaccessible types
+24:enforce-jakarta-nullability-annotations	Enforce Jakarta nullability annotations
+24:report-misplaced-type-arguments-in-callable-reference-qualifiers	Report misplaced type arguments in callable reference qualifiers
+24:report-errors-for-class-literals-from-reified-type-parameters-with-nullable-upper-bounds	Report errors for class literals from reified type parameters with nullable upper bounds
+24:prohibit-initialization-before-declarations-in-anonymous-objects	Prohibit initialization before declarations in anonymous objects
+24:enforce-exhaustiveness-for-when-expressions-with-non-abstract-java-sealed-classes	Enforce exhaustiveness for when expressions with non-abstract Java sealed classes
+24:prohibit-operator-modifier-on-getvalue-and-setvalue-functions-with-too-many-parameters	Prohibit operator modifier on getValue() and setValue() functions with too many parameters
+24:prohibit-inconsistent-type-arguments-in-generic-calls	Prohibit inconsistent type arguments in generic calls
+24:deprecate-references-to-the-javaclass-property	Deprecate references to the javaClass property
+24:report-errors-for-implicit-enum-constructor-calls-that-require-opt-in	Report errors for implicit enum constructor calls that require opt-in
+24:forbid-inline-modifier-on-enum-entries	Forbid inline modifier on enum entries
+24:prohibit-array-literals-outside-annotation-calls-and-parameter-defaults	Prohibit array literals outside annotation calls and parameter defaults
+24:prohibit-root-ide-package-in-cli-compiler-mode	Prohibit _root_ide_package_ in CLI compiler mode
+24:correct-equality-for-function-references-with-vararg-conversions	Correct equality for function references with vararg conversions
+24:enforce-opt-in-for-companion-object-access	Enforce opt-in for companion object access
+24:report-type-mismatches-from-supertypes-with-nested-generic-arguments	Report type mismatches from supertypes with nested generic arguments
+24:prohibit-inferred-types-with-inaccessible-declarations	Prohibit inferred types with inaccessible declarations
+24:deprecate-kotlin-io-readline-function	Deprecate kotlin.io.readLine() function
+24:deprecate-abstractcoroutinecontextkey-and-related-apis	Deprecate AbstractCoroutineContextKey and related APIs
+24:change-random-nextdouble-contract-for-infinite-bounds	Change Random.nextDouble() contract for infinite bounds
+24:deprecate-legacy-kotlin-js-compiler-type-selection-apis	Deprecate legacy Kotlin/JS compiler type selection APIs
+24:deprecate-sourcesets-in-the-kotlin-android-extension	Deprecate sourceSets in the Kotlin Android extension
+24:remove-consumable-configurations-for-kotlin-native-apple-frameworks	Remove consumable configurations for Kotlin/Native Apple frameworks
+24:remove-deprecated-task-compilation-and-dsl-apis-from-the-kotlin-gradle-plugin	Remove deprecated task, compilation, and DSL APIs from the Kotlin Gradle plugin
+24:deprecate-explicit-shrunk-classpath-snapshot-configuration	Deprecate explicit shrunk classpath snapshot configuration
+24:remove-redundant-abi-validation-gradle-dsl-elements	Remove redundant ABI validation Gradle DSL elements
+24:deprecate-obsolete-compose-compiler-gradle-plugin-options	Deprecate obsolete Compose compiler Gradle plugin options
+24:report-errors-for-obsolete-kotlin-native-gradle-task-apis	Report errors for obsolete Kotlin/Native Gradle task APIs
+24:report-warnings-for-case-mismatches-in-compiler-argument-values	Report warnings for case mismatches in compiler argument values
