@@ -94,6 +94,17 @@ jobs:
         if: matrix.kgp == '2.4.20'
         run: python tests/oracle/agp_matrix.py --gradle "$RUNNER_TEMP/gradle-8.14.3/bin/gradle" --kgp 2.4.20 8.1.3 8.5.1 8.5.2 8.13.2
 
+  claims:
+    name: README claims (claims-check)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: cosmichackerx/claims-check@v0.1.0
+
   action:
     name: action (this checkout, fixtures)
     runs-on: ubuntu-latest
