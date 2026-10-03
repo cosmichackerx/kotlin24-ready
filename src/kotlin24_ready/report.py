@@ -22,6 +22,8 @@ def summary_line(r: Result) -> str:
     c = counts(r)
     fx = sum(1 for f in r.findings if f.edit)
     kgp = f" Kotlin Gradle plugin detected: {r.kgp}." if r.kgp else " Kotlin Gradle plugin version not found."
+    if len(r.builds) > 1:
+        kgp += f" {len(r.builds)} Gradle builds (settings files) found; the version is the root build's."
     if r.pr:
         p = r.pr
         return (f"{r.files_scanned} file(s) scanned for Kotlin 2.4.{kgp} {c['error']} error, {c['warning']} warning, {c['note']} note introduced since {p['base']}; "
@@ -60,6 +62,7 @@ def render_markdown(r: Result) -> str:
 def render_json(r: Result) -> str:
     return json.dumps({
         "tool": "kotlin24-ready", "version": __version__, "kotlinTarget": "2.4", "kgpDetected": r.kgp,
+        **({"builds": [{"root": b or ".", "kgp": v} for b, v in r.builds.items()]} if len(r.builds) > 1 else {}),
         "filesScanned": r.files_scanned, "summary": counts(r),
         **({"pullRequest": r.pr} if r.pr else {}),
         "findings": [{"rule": f.rule, "severity": f.severity, "file": f.file, "line": f.line, "column": f.col,

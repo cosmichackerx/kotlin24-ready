@@ -103,7 +103,7 @@ its own checkout with the runner's Python; it does not install anything and make
 ```yaml
 repos:
   - repo: https://github.com/cosmichackerx/kotlin24-ready
-    rev: v0.1.4
+    rev: v0.1.5
     hooks:
       - id: kotlin24-ready        # report; fails the commit on errors
       # - id: kotlin24-ready-fix  # or: apply the mechanical fixes (the commit then stops so you can review the diff)
@@ -150,6 +150,7 @@ task properties). Section ids and the `Component:` line are a proxy; the guide i
 
 ## Limitations (read these)
 
+* Build boundaries are the nearest `settings.gradle(.kts)`; `includeBuild` and `pluginManagement` catalogs shared across builds are not followed. The version shown is the root build's, `--format json` lists every build under `builds`.
 * Text matching, not parsing. A string that builds a property name dynamically, a `build.gradle` script applied from another file, or a version catalog bundle is not followed.
 * `dependency-handler-platform` is Kotlin DSL only; in Groovy the call resolves differently and is not checked.
 * Property references without a receiver (`compileKotlinTask` inside `compilations.all { }`) are not flagged; qualified uses are.

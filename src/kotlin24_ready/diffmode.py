@@ -98,6 +98,6 @@ def scan_against_base(path: str, base: str, ignore=(), disabled=(), only=()) -> 
         else:
             new_findings.append(f)
     resolved = sum(old_counts.values())
-    res = Result(findings=new_findings, files_scanned=head.files_scanned, kgp=head.kgp)
+    res = Result(findings=new_findings, files_scanned=head.files_scanned, kgp=head.kgp, builds=head.builds)
     res.pr = {"base": base, "existing": existing, "resolved": resolved}
     return res

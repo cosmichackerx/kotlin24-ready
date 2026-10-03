@@ -29,11 +29,11 @@ class Finding:
 
 
 @dataclass
-@dataclass
 class Result:
     findings: list = field(default_factory=list)
     files_scanned: int = 0
     kgp: str | None = None
+    builds: dict = field(default_factory=dict)  # build root -> Kotlin Gradle plugin version found there (None when not found)
     pr: dict | None = None  # set in PR mode (--base): {base, existing, resolved}
 
 
@@ -132,33 +132,50 @@ class Project:
         self.kgp: str | None = None
         self.settings_dirs: set = set()  # directories that hold a settings.gradle[.kts]: each is the root of its own build
         self.uses_kotlin = False  # some build file or the catalog refers to a Kotlin Gradle plugin
+        self.builds: dict = {}  # build root dir ("" = the scan root) -> Project of that build alone (own catalog, own Kotlin plugin version)
 
-    def catalog_version(self, ent: dict):
+    def build_of(self, rel: str) -> str:
+        """The directory of the nearest settings.gradle[.kts] above `rel`: the root of the build the file belongs to."""
+        d = os.path.dirname(rel)
+        best = ""
+        for s in self.settings_dirs:
+            if s and (d == s or d.startswith(s + "/")) and len(s) > len(best):
+                best = s
+        return best
+
+    def uses_kotlin_for(self, rel: str) -> bool:
+        sub = self.builds.get(self.build_of(rel))
+        return sub.uses_kotlin if sub is not None else self.uses_kotlin
+
+    def catalog_version(self, ent: dict, cat: dict | None = None):
+        cat = self.catalog if cat is None else cat
         if "version" in ent:
             return ent["version"]
         ref = ent.get("version.ref")
         if ref:
-            return self.catalog.get("versions", {}).get(ref, {}).get("value")
+            return cat.get("versions", {}).get(ref, {}).get("value")
         return None
 
-    def detect_kgp(self, texts: dict):
-        for k, ent in self.catalog.get("plugins", {}).items():
-            if ent.get("id", "").startswith("org.jetbrains.kotlin."):
-                v = self.catalog_version(ent)
+    def detect_kgp(self, texts: dict, extra_catalogs=()):
+        """Kotlin plugin version of one build: its catalogs (a build can have several *.versions.toml files), then its build scripts."""
+        for cat in [self.catalog, *extra_catalogs]:
+            for k, ent in cat.get("plugins", {}).items():
+                if ent.get("id", "").startswith("org.jetbrains.kotlin."):
+                    v = self.catalog_version(ent, cat)
+                    if v and vtuple(v):
+                        self.kgp = v
+                        return
+            for k, ent in cat.get("libraries", {}).items():
+                if ent.get("module") == "org.jetbrains.kotlin:kotlin-gradle-plugin":
+                    v = self.catalog_version(ent, cat)
+                    if v and vtuple(v):
+                        self.kgp = v
+                        return
+            for k in ("kotlin", "kotlin-version", "kotlinVersion"):
+                v = cat.get("versions", {}).get(k, {}).get("value")
                 if v and vtuple(v):
                     self.kgp = v
                     return
-        for k, ent in self.catalog.get("libraries", {}).items():
-            if ent.get("module") == "org.jetbrains.kotlin:kotlin-gradle-plugin":
-                v = self.catalog_version(ent)
-                if v and vtuple(v):
-                    self.kgp = v
-                    return
-        for k in ("kotlin", "kotlin-version", "kotlinVersion"):
-            v = self.catalog.get("versions", {}).get(k, {}).get("value")
-            if v and vtuple(v):
-                self.kgp = v
-                return
         for text in texts.values():
             m = re.search(r"""org\.jetbrains\.kotlin:kotlin-gradle-plugin:(\d[\w.\-]*)""", text) or \
                 re.search(r"""\bkotlin\s*\(\s*["'][\w\-]+["']\s*\)\s*version\s*["'](\d[\w.\-]*)["']""", text) or \
@@ -343,7 +360,7 @@ AGP_MIN = "8.5.2"
 
 def agp_minimum(c: Ctx):
     """The version check the Kotlin plugin itself makes (message seen in the study: "The applied Android Gradle Plugin version (8.1.3) is lower than the minimum supported 8.5.2")."""
-    if not c.p.uses_kotlin:
+    if not c.p.uses_kotlin_for(c.rel):
         return
     d = os.path.dirname(c.rel)
     nested = any(s and (d == s or d.startswith(s + "/")) for s in c.p.settings_dirs)  # a sample / demo build with its own settings file
@@ -452,31 +469,45 @@ def _read(full: str) -> str:
 
 
 def load_project(root: str, files: list) -> Project:
+    """Group the files by build (nearest settings.gradle[.kts]) and look at each build on its own: a sample or demo build
+    inside a repository has its own catalog and its own Kotlin plugin version, and says nothing about the root build."""
     p = Project()
-    texts = {}
     base = os.path.abspath(root) if os.path.isdir(root) else os.path.dirname(os.path.abspath(root))
+    p.settings_dirs = {os.path.dirname(rel) for _, rel in files if os.path.basename(rel).startswith("settings.gradle")}
+    texts: dict = {}
+    catalogs: dict = {}
     for full, rel in files:
         kind = kind_of(os.path.basename(full), rel)
+        b = p.build_of(rel)
         if kind in ("kotlin", "groovy"):
-            texts[rel] = blank_comments(_read(full), kind == "kotlin")
+            texts.setdefault(b, {})[rel] = blank_comments(_read(full), kind == "kotlin")
+        elif kind == "catalog":
+            catalogs.setdefault(b, []).append((os.path.basename(rel), parse_catalog(_read(full))))
     cand = os.path.join(base, "gradle", "libs.versions.toml")
-    if os.path.isfile(cand):
-        p.catalog = parse_catalog(_read(cand))
-    for full, rel in files:  # a catalog inside the scan wins when the root has none
-        if kind_of(os.path.basename(full), rel) == "catalog" and not p.catalog:
-            p.catalog = parse_catalog(_read(full))
-    p.settings_dirs = {os.path.dirname(rel) for _, rel in files if os.path.basename(rel).startswith("settings.gradle")}
-    p.detect_kgp(texts)
+    if "" not in catalogs and os.path.isfile(cand):
+        catalogs[""] = [("libs.versions.toml", parse_catalog(_read(cand)))]
     kt = re.compile(r"""org\.jetbrains\.kotlin[.:]|\bkotlin\s*\(\s*["']|["']kotlin-(?:android|multiplatform)["']|kotlin-gradle-plugin""")
-    p.uses_kotlin = any(kt.search(x) for x in texts.values()) or \
-        any(str(v) and kt.search(str(v)) for sec in p.catalog.values() for ent in sec.values() for v in ent.values())
+    for b in set(texts) | set(catalogs) | {""}:
+        sub = Project()
+        # libs.versions.toml first: it is the default catalog
+        cats = [c for _, c in sorted(catalogs.get(b, []), key=lambda nc: (nc[0] != "libs.versions.toml", nc[0]))]
+        sub.catalog = cats[0] if cats else {}
+        sub.detect_kgp(texts.get(b, {}), cats[1:])
+        sub.uses_kotlin = any(kt.search(x) for x in texts.get(b, {}).values()) or \
+            any(str(v) and kt.search(str(v)) for c in cats for sec in c.values() for ent in sec.values() for v in ent.values())
+        p.builds[b] = sub
+    root_build = p.builds[""]
+    p.catalog = root_build.catalog
+    p.uses_kotlin = any(s.uses_kotlin for s in p.builds.values())
+    # the version shown in the summary is the root build's; without one, the shallowest nested build that has one
+    p.kgp = root_build.kgp or next((p.builds[b].kgp for b in sorted(p.builds, key=lambda x: (x.count("/"), x)) if p.builds[b].kgp), None)
     return p
 
 
 def scan(root: str, ignore=(), disabled=(), only=()) -> Result:
     files = list(discover(root, list(ignore)))
     p = load_project(root, files)
-    r = Result(kgp=p.kgp)
+    r = Result(kgp=p.kgp, builds={b: s.kgp for b, s in sorted(p.builds.items())})
     for full, rel in files:
         r.files_scanned += 1
         r.findings += scan_text(rel, _read(full), kind_of(os.path.basename(full), rel), p, frozenset(disabled), frozenset(only))

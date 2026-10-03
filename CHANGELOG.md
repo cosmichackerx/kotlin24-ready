@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.5 - 2026-10-03
+
+* **Files are grouped by Gradle build** (the nearest `settings.gradle(.kts)` above them). Each build gets its own version catalogs and Kotlin Gradle plugin version, so a sample or `build-logic` build with its own settings file no longer inherits the root build's version, and a Java-only Android build next to a Kotlin build is not reported by `agp-minimum`. The reported version is the root build's (the shallowest nested build with one if the root has none).
+* A build with several catalogs (`libs.versions.toml` plus e.g. `plugin.versions.toml`) is read as a whole; `libs` first.
+* `--format json` has a `builds` list when more than one build is found; the text summary says so.
+* Re-scan of the 84 study repositories: finding counts unchanged; the detected version changed for one repository (KuiklyUI 2.0.21 -> 1.9.22: now the root build's value; this repository keeps several version-specific build files, so neither number is "the" version); 13 `agp-minimum` findings in moko-resources samples moved from error to warning (nested builds).
+
 ## 0.1.4 - 2026-10-03
 
 * New rule `agp-minimum` (found by the study: Pokedex with AGP 8.1.3 and KuiklyUI with 7.4.2 stop at "lower than the minimum supported 8.5.2"). Reads the catalog, `id("com.android.*") version` and `com.android.tools.build:gradle:` classpaths; only when the project uses a Kotlin plugin; a nested build with its own settings file is a warning. Not reproduced by the oracle (see README).
