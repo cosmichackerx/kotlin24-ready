@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kotlin24-ready"
+version = "0.1.0"
+description = "Find what Kotlin 2.4 removes in the Kotlin Gradle plugin from your Gradle build files without running Gradle: language version 1.9, KMP targetHierarchy and platform(), Compose compiler options, ABI validation DSL. Auto-fix, SARIF and GitHub Action."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Muhammad Arslan", email = "cosmichackerx@users.noreply.github.com" }]
+keywords = ["kotlin", "kotlin-2-4", "kgp", "kotlin-gradle-plugin", "kotlin-multiplatform", "compose-compiler", "gradle", "migration", "lint", "linter", "sarif", "github-action", "deprecation"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Environment :: Console",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Software Development :: Build Tools",
+]
+
+[project.urls]
+Homepage = "https://github.com/cosmichackerx/kotlin24-ready"
+Issues = "https://github.com/cosmichackerx/kotlin24-ready/issues"
+
+[project.scripts]
+kotlin24-ready = "kotlin24_ready.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
