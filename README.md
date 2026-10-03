@@ -104,15 +104,17 @@ inserting lines above a finding does not make it "new"; renames are followed). T
 
 `tests/oracle/run_oracle.py` writes tiny projects, runs the scanner, then runs **real Gradle 9.8.0 with the real Kotlin Gradle plugin 2.4.20** and checks that
 "the scanner reports an error" equals "Gradle fails" for every case, including the *negative* cases (the replacement API must build and must not be flagged).
-Cases with `--fix` are rewritten and built again. CI runs it on every push. The same cases are run on 2.3.20 as an informational job:
-some APIs (`platform()` in a KMP source set, `compileKotlinTask`) already fail there, others (language version 1.9, Compose options) only warn.
+Cases with `--fix` are rewritten and built again. CI runs it on every push. The same cases are run on 2.3.20 as an informational job (it never fails the build). Result of that run:
+
+* already **fail on 2.3.20**: `platform()` in a KMP source set, `targetHierarchy`, `compileKotlinTask` / `compileKotlinTaskProvider`, `withWasm` / `withoutCompilations` / `filterCompilations`, `abiValidation { legacyDump { } }`;
+* build on 2.3.20 and **fail on 2.4.20** (the real 2.4 breakage): language version 1.9, every listed Compose compiler option, `abiValidation { enabled }`, `klib { enabled }`, `klib { keepUnsupportedTargets }`.
 
 What this does and does not prove:
 
 * It proves the listed constructs fail (or build) on **one** plugin version, 2.4.20, in the minimal project shape of each case. It does not prove every spelling is found: detection is text matching on comment- and string-blanked source, not a Kotlin parse.
 * `js-compiler-type` and `kotlin-android-sourcesets` are **documentation only**: 2.4.20 builds `js(IR)` without a failure, and the Android `sourceSets` case is a heuristic (it can miss or over-report).
 * Where the guide and the plugin disagree the plugin wins: the guide lists `KotlinJvmCompile.moduleName` and `KotlinCompilation.defaultSourceSetName` as removed, but
-  2.4.20 still accepts both in the oracle project, so they are **not** rules.
+  2.4.20 still accepts both in the oracle project (`moduleName` even fails on 2.3.20 and builds on 2.4.20), so they are **not** rules.
 * Not covered: the Kotlin/Native task API removals (`konanHome`, `languageSettings`, ...), `KaptExtension.processors`, `KotlinTest.*` internals, Kotlin source-language changes.
 
 ## How it relates to other tools
