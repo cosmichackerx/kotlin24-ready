@@ -16,7 +16,7 @@ def ids(fs):
 def test_language_version_variants():
     assert ids(run('kotlin { compilerOptions { languageVersion.set(KotlinVersion.KOTLIN_1_9) } }')) == ["language-version-1-9"]
     assert ids(run('kotlin { compilerOptions { languageVersion = KotlinVersion.KOTLIN_1_8 } }')) == ["language-version-1-9"]
-    assert ids(run('kotlinOptions { languageVersion = "1.9" }')) == ["language-version-1-9"]
+    assert ids(run('compilerOptions { languageVersion = "1.9" }')) == ["language-version-1-9"]
     assert ids(run("freeCompilerArgs += '-language-version=1.9'", "groovy", "build.gradle")) == ["language-version-1-9"]
     assert ids(run('freeCompilerArgs.addAll("-language-version", "1.9")')) == ["language-version-1-9"]
 
@@ -100,3 +100,35 @@ def test_convention_plugin_sources():
     src = 'import org.jetbrains.kotlin.gradle.dsl.KotlinVersion\nproject.extensions.configure<K>() { composeCompiler { enableStrongSkippingMode.set(true) }\n languageVersion.set(KotlinVersion.KOTLIN_1_9)\n val t = c.compileKotlinTask }'
     fs = scan_text("build-logic/src/main/kotlin/A.kt", src, "source", Project())
     assert ids(fs) == ["compilation-task-accessors", "compose-compiler-options", "language-version-1-9"]
+
+
+def test_kotlin_options():
+    assert ids(run('tasks.withType<KotlinCompile>().configureEach { kotlinOptions { jvmTarget = "17" } }')) == ["kotlin-options"]
+    assert run('android { kotlinOptions { jvmTarget = "17" } }') == []  # builds on 2.4.20 (agp9-ready covers AGP 9)
+    assert ids(run('kotlin { kotlinOptions { jvmTarget = "17" } }')) == ["kotlin-options"]
+    assert ids(run('androidTarget { compilations.all { kotlinOptions { jvmTarget = "11" } } }')) == ["kotlin-options"]
+    assert ids(run("tasks.withType(KotlinCompile).configureEach { kotlinOptions { jvmTarget = '17' } }", "groovy", "build.gradle")) == ["kotlin-options"]
+    assert ids(run('tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {\n kotlinOptions.jvmTarget = "11"\n}')) == ["kotlin-options"]
+    assert ids(run('tasks.withType<KotlinCompile> { kotlinOptions.freeCompilerArgs += "-Xfoo" }', "source", "buildSrc/A.kt")) == ["kotlin-options"]
+    assert run('kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }') == []
+    assert run('// kotlinOptions { }\nval s = "kotlinOptions"') == []
+    assert run('val x = myKotlinOptions') == []
+
+
+def test_kotlin_js_plugin():
+    assert ids(run('plugins { id("org.jetbrains.kotlin.js") version "2.3.0" }')) == ["kotlin-js-plugin"]
+    assert ids(run('plugins { kotlin("js") }')) == ["kotlin-js-plugin"]
+    assert ids(run("apply plugin: 'kotlin-js'", "groovy", "build.gradle")) == ["kotlin-js-plugin"]
+    assert ids(run('kotlin-js = { id = "org.jetbrains.kotlin.js", version.ref = "kotlin" }', "catalog", "gradle/libs.versions.toml")) == ["kotlin-js-plugin"]
+    assert run('plugins { kotlin("multiplatform") }') == []
+    assert run('plugins { id("org.jetbrains.kotlin.jvm") }') == []
+    assert run('implementation("org.jetbrains.kotlin-wrappers:kotlin-js:1")') == []
+
+
+def test_abi_removed_types_and_extension_enabled():
+    src = 'import org.jetbrains.kotlin.gradle.dsl.abi.AbiValidationMultiplatformExtension\nimport org.jetbrains.kotlin.gradle.dsl.abi.AbiValidationVariantSpec'
+    assert ids(run(src)) == ["abi-validation-legacy", "abi-validation-legacy"]
+    cfg = 'extensions.configure<AbiValidationExtension> {\n enabled = true\n applyFilters()\n}'
+    assert ids(run(cfg)) == ["abi-validation-legacy"]
+    assert run('extensions.configure<AbiValidationExtension> {\n applyFilters()\n}') == []
+    assert run('extensions.configure<Other> {\n enabled = true\n}') == []

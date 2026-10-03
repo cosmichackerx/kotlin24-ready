@@ -322,6 +322,41 @@ def abi_validation(c: Ctx):
             c.add("abi-validation-legacy", a + m.start(), "`abiValidation { enabled }` is removed; calling `abiValidation { }` turns the feature on")
 
 
+def abi_removed_types(c: Ctx):
+    if c.kind not in CODE_KINDS:
+        return
+    for m in re.finditer(r"\bAbiValidation(?:MultiplatformExtension|VariantSpec)\b", c.nostr):
+        c.add("abi-validation-legacy", m.start(), f"`{m.group(0)}` was removed; use `AbiValidationExtension` / `abiValidation {{ }}`")
+    for a, b in block_spans(c.nostr, r"(?:extensions\s*\.\s*)?configure\s*<[^>]*AbiValidation\w*>"):
+        for m in re.finditer(r"(?<![\w.])enabled\b", c.nostr[a:b]):
+            c.add("abi-validation-legacy", a + m.start(), "`enabled` of the ABI validation extension is removed; calling `abiValidation { }` turns the feature on")
+
+
+_KO_CONTEXT = (r"(?:tasks\s*\.\s*)?withType\s*(?:<[^>]*Kotlin[^>]*>\s*(?:\(\s*\))?|\(\s*[\w.]*Kotlin[\w.]*(?:\.class)?\s*\))\s*(?:\.\s*(?:configureEach|all|matching\s*\([^)]*\)\s*\.\s*configureEach)\s*)?"
+               r"|compilations\s*\.\s*(?:all|configureEach)|(?:tasks\s*\.\s*)?(?:named|register)\s*[<(][^{]*Kotlin[^{]*|kotlin")
+
+
+def kotlin_options(c: Ctx):
+    """`kotlinOptions` on a Kotlin compile task, compilation or the `kotlin { }` extension fails on 2.4.20 (checked against the real plugin).
+    The Android `android { kotlinOptions { } }` form still builds there (it only breaks on AGP 9 built-in Kotlin: see agp9-ready), so it is not flagged."""
+    if c.kind not in CODE_KINDS:
+        return
+    seen = set()
+    for a, b in block_spans(c.nostr, _KO_CONTEXT):
+        for m in re.finditer(r"(?<![\w])kotlinOptions\b", c.nostr[a:b]):
+            off = a + m.start()
+            if off not in seen:
+                seen.add(off)
+                c.add("kotlin-options", off)
+
+
+def kotlin_js_plugin(c: Ctx):
+    if c.kind in CODE_KINDS or c.kind == "catalog":
+        pat = r"""org\.jetbrains\.kotlin\.js(?![\w.\-])|\bkotlin\s*\(\s*["']js["']\s*\)|["']kotlin-js["']|\bplugin\s*:\s*["']kotlin-(?:platform-)?js["']"""
+        for m in re.finditer(pat, c.code):
+            c.add("kotlin-js-plugin", m.start())
+
+
 def js_compiler_type(c: Ctx):
     if c.kind not in CODE_KINDS:
         return
@@ -349,7 +384,7 @@ def android_sourcesets(c: Ctx):
 
 
 DETECTORS = [language_version, dependency_handler, target_hierarchy, compilation_accessors, hierarchy_builder,
-             compose_options, abi_validation, js_compiler_type, android_sourcesets]
+             compose_options, abi_validation, abi_removed_types, kotlin_options, kotlin_js_plugin, js_compiler_type, android_sourcesets]
 
 def scan_text(rel: str, text: str, kind: str, project: Project | None = None, disabled=frozenset(), only=frozenset()):
     c = Ctx(rel, text, kind, project or Project())
