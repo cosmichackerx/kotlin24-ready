@@ -1,0 +1,14 @@
+- id: kotlin24-ready
+  name: kotlin24-ready (Kotlin 2.4 Gradle plugin readiness)
+  description: Report what Kotlin 2.4 removes in the Kotlin Gradle plugin from Gradle build files, without running Gradle.
+  entry: kotlin24-ready
+  language: python
+  files: '(\.gradle(\.kts)?|\.versions\.toml)$|(^|/)(buildSrc|build-logic|buildLogic)/.*\.(kt|java|groovy)$'
+  pass_filenames: false
+- id: kotlin24-ready-fix
+  name: kotlin24-ready --fix (apply the mechanical fixes)
+  description: Apply the safe automatic Kotlin 2.4 fixes, then report what is left.
+  entry: kotlin24-ready --fix
+  language: python
+  files: '(\.gradle(\.kts)?|\.versions\.toml)$|(^|/)(buildSrc|build-logic|buildLogic)/.*\.(kt|java|groovy)$'
+  pass_filenames: false
