@@ -157,3 +157,61 @@ def test_agp_minimum_nested_build_is_a_warning():
     assert [(f.rule, f.severity) for f in fs] == [("agp-minimum", "warning")]
     fs = scan_text("app/build.gradle.kts", 'plugins { id("com.android.application") version "7.1.3" }', "kotlin", p)
     assert [(f.rule, f.severity) for f in fs] == [("agp-minimum", "error")]
+
+
+def _tree(tmp_path, files):
+    for rel, body in files.items():
+        p = tmp_path / rel
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(body)
+    return str(tmp_path)
+
+
+def test_builds_are_separated_by_settings_file(tmp_path):
+    from kotlin24_ready.scan import scan
+    root = _tree(tmp_path, {
+        "settings.gradle.kts": 'rootProject.name = "r"',
+        "build.gradle.kts": 'plugins { kotlin("jvm") version "2.4.20" }',
+        "sample/settings.gradle.kts": 'rootProject.name = "s"',
+        "sample/gradle/libs.versions.toml": '[versions]\nkotlin = "2.0.21"\nagp = "8.1.3"\n[plugins]\nk = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }\n',
+        "sample/app/build.gradle.kts": 'plugins { id("com.android.application") version "8.1.3" }',
+    })
+    r = scan(root)
+    assert r.kgp == "2.4.20"  # the root build's, not the sample's
+    assert r.builds == {"": "2.4.20", "sample": "2.0.21"}
+    agp = [f for f in r.findings if f.rule == "agp-minimum"]
+    assert agp and all(f.severity == "warning" for f in agp)  # the sample is its own build: a warning
+
+
+def test_a_java_only_android_build_next_to_a_kotlin_build_is_not_flagged(tmp_path):
+    from kotlin24_ready.scan import scan
+    root = _tree(tmp_path, {
+        "settings.gradle.kts": 'rootProject.name = "r"',
+        "build.gradle.kts": 'plugins { kotlin("jvm") version "2.3.0" }',
+        "legacy/settings.gradle.kts": 'rootProject.name = "legacy"',
+        "legacy/build.gradle.kts": 'plugins { id("com.android.application") version "7.4.2" }',
+    })
+    r = scan(root)
+    assert [f for f in r.findings if f.rule == "agp-minimum"] == []
+
+
+def test_the_summary_version_comes_from_a_nested_build_only_when_the_root_has_none(tmp_path):
+    from kotlin24_ready.scan import scan
+    root = _tree(tmp_path, {
+        "settings.gradle.kts": 'rootProject.name = "r"',
+        "build.gradle.kts": "// nothing",
+        "demo/settings.gradle.kts": 'rootProject.name = "d"',
+        "demo/build.gradle.kts": 'plugins { kotlin("jvm") version "2.1.0" }',
+    })
+    r = scan(root)
+    assert r.kgp == "2.1.0" and r.builds == {"": None, "demo": "2.1.0"}
+
+
+def test_a_build_can_have_several_catalogs(tmp_path):
+    from kotlin24_ready.scan import scan
+    root = _tree(tmp_path, {
+        "settings.gradle.kts": 'rootProject.name = "r"',
+        "gradle/libs.versions.toml": '[versions]\nagp = "8.7.0"\n',
+        "gradle/plugin.versions.toml": '[versions]\nkotlin = "2.4.0"\n',
+    })
+    assert scan(root).kgp == "2.4.0"
