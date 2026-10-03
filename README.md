@@ -62,6 +62,7 @@ build.gradle.kts
 | [`abi-validation-legacy`](https://kotlinlang.org/docs/compatibility-guide-24.html#remove-redundant-abi-validation-gradle-dsl-elements) | error | Removed ABI validation DSL elements: `abiValidation { legacyDump { } }`, `abiValidation { enabled }`, `klib { enabled }`, `klib.keepUnsupportedTargets`, the classes `AbiValidationMultiplatformExtension` / `AbiValidationVariantSpec` and `enabled` inside `configure<AbiValidation…>` | Put the report settings directly in `abiValidation { }` (calling the block enables the feature); use `keepLocallyUnsupportedTargets` instead of `klib.keepUnsupportedTargets`. |  | real Kotlin Gradle plugin 2.4.20 |
 | `kotlin-options` | error | `kotlinOptions { }` / `kotlinOptions.x` on a Kotlin compile task (`tasks.withType<KotlinCompile>`), a compilation or the `kotlin { }` extension fails the build. The `android { kotlinOptions }` form still builds on 2.4.20 and is left to agp9-ready | Use `compilerOptions { }`. |  | real Kotlin Gradle plugin 2.4.20 (also fails on 2.3.20) |
 | [`kotlin-js-plugin`](https://kotl.in/t6m3vu) | error | The `org.jetbrains.kotlin.js` plugin (`kotlin("js")`, `kotlin-js`) no longer applies | Use `kotlin("multiplatform")` with a `js { }` target. |  | real Kotlin Gradle plugin 2.4.20 |
+| `agp-minimum` | error | The Android Gradle Plugin is older than 8.5.2 in a project that uses the Kotlin plugin: Kotlin Gradle plugin 2.4.20 refuses to apply (nested builds with their own settings file are a warning) | Raise AGP to 8.5.2 or newer. |  | observed in the study (2 projects), **not in the oracle** (AGP 8.1.3 also fails on Gradle 9.8 for other reasons, so an oracle case cannot isolate the Kotlin check) |
 | [`js-compiler-type`](https://kotlinlang.org/docs/compatibility-guide-24.html#deprecate-legacy-kotlin-js-compiler-type-selection-apis) | warning | `js(IR)`, `js(LEGACY)`, `js(BOTH)` and `KotlinJsCompilerType` are deprecated in Kotlin 2.4 (the legacy compiler type constants are removed) | Drop the argument: `js { ... }`. | `--fix` | documentation only |
 | [`kotlin-android-sourcesets`](https://kotlinlang.org/docs/compatibility-guide-24.html#deprecate-sourcesets-in-the-kotlin-android-extension) | warning | `kotlin { sourceSets { } }` on the Kotlin Android extension is deprecated in Kotlin 2.4 | Configure source sets in the Android Gradle plugin's `android { sourceSets { } }` block. |  | documentation only |
 
@@ -102,7 +103,7 @@ its own checkout with the runner's Python; it does not install anything and make
 ```yaml
 repos:
   - repo: https://github.com/cosmichackerx/kotlin24-ready
-    rev: v0.1.3
+    rev: v0.1.4
     hooks:
       - id: kotlin24-ready        # report; fails the commit on errors
       # - id: kotlin24-ready-fix  # or: apply the mechanical fixes (the commit then stops so you can review the diff)

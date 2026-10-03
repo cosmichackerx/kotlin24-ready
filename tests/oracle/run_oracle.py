@@ -20,7 +20,7 @@ import tempfile
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 from kotlin24_ready.scan import apply_fixes, scan  # noqa: E402
 
-SETTINGS = ('pluginManagement { repositories { gradlePluginPortal(); mavenCentral() } }\n'
+SETTINGS = ('pluginManagement { repositories { gradlePluginPortal(); mavenCentral(); google() } }\n'
             'dependencyResolutionManagement { repositories { mavenCentral() } }\nrootProject.name = "o"\n')
 COMPOSE = 'id("org.jetbrains.kotlin.plugin.compose") version "%(v)s"'
 ABI = '@OptIn(org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation::class)\n'

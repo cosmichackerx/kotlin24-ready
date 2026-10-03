@@ -6,7 +6,9 @@ from kotlin24_ready.scan import Project, scan_text  # noqa: E402
 
 
 def run(text, kind="kotlin", rel="build.gradle.kts", **kw):
-    return scan_text(rel, text, kind, Project(), **kw)
+    p = Project()
+    p.uses_kotlin = True
+    return scan_text(rel, text, kind, p, **kw)
 
 
 def ids(fs):
@@ -132,3 +134,26 @@ def test_abi_removed_types_and_extension_enabled():
     assert ids(run(cfg)) == ["abi-validation-legacy"]
     assert run('extensions.configure<AbiValidationExtension> {\n applyFilters()\n}') == []
     assert run('extensions.configure<Other> {\n enabled = true\n}') == []
+
+
+def test_agp_minimum():
+    assert ids(run('plugins { id("com.android.application") version "8.1.3" }')) == ["agp-minimum"]
+    assert ids(run("classpath 'com.android.tools.build:gradle:7.4.2'", "groovy", "build.gradle")) == ["agp-minimum"]
+    assert run('plugins { id("com.android.library") version "8.5.2" }') == []
+    assert run('plugins { id("com.android.library") version "8.13.0" }') == []
+    assert run('plugins { id("com.android.library") version "8.10.0-rc01" }') == []
+    cat = '[versions]\nagp = "8.1.3"\nkotlin = "2.0.0"\n[plugins]\nandroid-app = { id = "com.android.application", version.ref = "agp" }\n'
+    assert ids(run(cat, "catalog", "gradle/libs.versions.toml")) == ["agp-minimum"]
+    assert run('[versions]\nagp = "8.7.0"\n', "catalog", "gradle/libs.versions.toml") == []
+    p = Project()  # no Kotlin plugin anywhere: a Java-only Android app is not affected
+    assert scan_text("build.gradle.kts", 'plugins { id("com.android.application") version "7.0.0" }', "kotlin", p) == []
+
+
+def test_agp_minimum_nested_build_is_a_warning():
+    p = Project()
+    p.uses_kotlin = True
+    p.settings_dirs = {"", "examples/min"}
+    fs = scan_text("examples/min/build.gradle.kts", 'plugins { id("com.android.application") version "7.1.3" }', "kotlin", p)
+    assert [(f.rule, f.severity) for f in fs] == [("agp-minimum", "warning")]
+    fs = scan_text("app/build.gradle.kts", 'plugins { id("com.android.application") version "7.1.3" }', "kotlin", p)
+    assert [(f.rule, f.severity) for f in fs] == [("agp-minimum", "error")]
