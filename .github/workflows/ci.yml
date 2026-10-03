@@ -58,10 +58,11 @@ jobs:
     # Every construct in tests/oracle/run_oracle.py is built with a real Kotlin Gradle plugin; the build outcome must agree with what kotlin24-ready reports.
     name: oracle (real Kotlin Gradle plugin ${{ matrix.kgp }}, Gradle 9.8.0)
     runs-on: ubuntu-latest
+    continue-on-error: ${{ contains(matrix.kgp, 'Beta') }}  # a beta may differ from the documented 2.4 behaviour; it informs, it does not gate
     strategy:
       fail-fast: false
       matrix:
-        kgp: ["2.4.20"]
+        kgp: ["2.4.20", "2.5.0-Beta1"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
