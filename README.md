@@ -15,6 +15,25 @@ project with five of them takes five fix-and-wait cycles. This lists them all at
 [Kotlin 2.4 compatibility guide](https://kotlinlang.org/docs/compatibility-guide-24.html) each comes from. It does **not** look at the Kotlin
 source-language changes in that guide (those are compiler errors in your `.kt` code; the compiler already reports them).
 
+## At a glance
+
+|  | Lite (try it in a minute) | Full (keep it in CI) |
+|---|---|---|
+| How | `pipx install git+https://github.com/cosmichackerx/kotlin24-ready` then `kotlin24-ready .` (read-only; `--fix` is opt-in) | the [GitHub Action](#github-action) (SARIF, job summary, PR comment), the [pre-commit](#pre-commit) hook, `--base origin/main` [PR mode](#pr-mode), and the weekly [docs watch](#docs-watch-keeps-the-rule-table-honest) |
+
+### Validation / results
+
+Every number below is from this repository's own tests or scripts (see the linked sections). "Not proven" is as important as "Result".
+
+| What is claimed | Checked against | Size | Result | Not proven |
+|---|---|---|---|---|
+| Each error rule fails on Kotlin 2.4.20 and its replacement builds | Real Gradle 9.8.0 with the real Kotlin Gradle plugin 2.4.20 (CI, every push); 2.3.20 as an informational job | 36 oracle cases, positive and negative | 0 disagreements required for CI to pass; main is green | One plugin version, minimal projects; detection is text matching, not a Kotlin parse. `agp-minimum`, `js-compiler-type` and `kotlin-android-sourcesets` are **not** oracle-backed |
+| `--fix` output builds | The oracle rewrites its fixable cases and builds them again | the fixable oracle cases | green | Only the mechanical cases that have one unambiguous replacement |
+| It finds what breaks real projects | [kotlin24-ready-study](https://github.com/cosmichackerx/kotlin24-ready-study): public KMP/Compose repositories built with 2.4.20 | 25 usable repositories, 8 failed on 2.4.20 | 4 failures were Kotlin removals (2 caught at the time, 2 became rules in v0.1.3, so in-sample); the other 4 were SKIE or too-old AGP, which the scanner did not model then | Small, not random; recall is in-sample |
+| Scanning at scale does not crash or flood | 84 study repositories, v0.1.5 (counts only) | 84 repositories, 81 with Gradle files | Finding counts per rule are in the [study](https://github.com/cosmichackerx/kotlin24-ready-study) | No hand-checked precision for this scan |
+
+**Releases:** 6 releases, v0.1.0 to v0.1.5, all published on 2026-10-03 (the project is days old, so there is no long-term cadence to show). Every release is in [CHANGELOG.md](CHANGELOG.md) and on the [Releases page](https://github.com/cosmichackerx/kotlin24-ready/releases); the weekly docs watch opens an issue when the Kotlin guide changes, it does not release anything.
+
 ## Install and run
 
 ```
