@@ -64,6 +64,13 @@ CASES = {
     "abi-klib-keep": (kmp(ABI + 'kotlin { jvm()\n abiValidation { klib { keepUnsupportedTargets = true } } }'), "help", True, "abi-validation-legacy", False),
     "abi-enabled": (jvm(ABI + 'kotlin { abiValidation { enabled = true } }'), "help", True, "abi-validation-legacy", False),
     "abi-new-ok": (jvm(ABI + 'kotlin { abiValidation { } }'), "help", False, None, False),
+    "kotlin-options-task": (jvm('import org.jetbrains.kotlin.gradle.tasks.KotlinCompile\ntasks.withType<KotlinCompile>().configureEach { kotlinOptions { jvmTarget = "17" } }'), "help", True, "kotlin-options", False),
+    "kotlin-options-extension": (jvm('kotlin { kotlinOptions { jvmTarget = "17" } }'), "help", True, "kotlin-options", False),
+    "kotlin-options-compilation": (kmp('kotlin { jvm { compilations.all { kotlinOptions { jvmTarget = "17" } } } }'), "help", True, "kotlin-options", False),
+    "compiler-options-ok": (jvm('import org.jetbrains.kotlin.gradle.dsl.JvmTarget\nkotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }'), "help", False, None, False),
+    "kotlin-js-plugin": ('plugins { kotlin("js") version "%(v)s" }\nkotlin { js { nodejs() } }\n', "help", True, "kotlin-js-plugin", False),
+    "abi-removed-multiplatform-extension": (kmp('import org.jetbrains.kotlin.gradle.dsl.abi.AbiValidationMultiplatformExtension\nprintln(AbiValidationMultiplatformExtension::class)'), "help", True, "abi-validation-legacy", False),
+    "abi-extension-enabled": (jvm('import org.jetbrains.kotlin.gradle.dsl.abi.AbiValidationExtension\n' + ABI + 'kotlin { extensions.configure<AbiValidationExtension> { enabled = true } }'), "help", True, "abi-validation-legacy", False),
     "module-name-ok": (jvm('import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile\ntasks.withType<KotlinJvmCompile>().configureEach { moduleName.set("x") }'), "help", False, None, False),
     # documentation-only: reported as a warning, Gradle still builds
     "js-ir-warning": (kmp('kotlin { js(IR) { nodejs() } }'), "help", False, "js-compiler-type", True),
