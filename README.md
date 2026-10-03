@@ -95,6 +95,20 @@ Everything else (language version, `featureFlags`, ABI validation, compilation t
 Inputs: `path`, `fail-on`, `disable`, `ignore`, `summary` (job summary), `pr-mode`, `base`, `comment`, `github-token`, `sarif-file`. The action runs the scanner from
 its own checkout with the runner's Python; it does not install anything and makes no network calls except the sticky comment.
 
+## pre-commit
+
+```yaml
+repos:
+  - repo: https://github.com/cosmichackerx/kotlin24-ready
+    rev: v0.1.1
+    hooks:
+      - id: kotlin24-ready        # report; fails the commit on errors
+      # - id: kotlin24-ready-fix  # or: apply the mechanical fixes (the commit then stops so you can review the diff)
+```
+
+The hooks scan the whole project (`pass_filenames: false`) and run only when a `*.gradle(.kts)`, `*.versions.toml` or `buildSrc` / `build-logic` source changed.
+CI checks the hooks with `pre-commit try-repo` against the fixtures (clean passes, legacy fails, the fix hook rewrites it).
+
 ## PR mode
 
 `--base REF` scans the base revision in a temporary checkout and reports only the findings a change introduces (matched by rule, file and line text, so
