@@ -85,7 +85,7 @@ Everything else (language version, `featureFlags`, ABI validation, compilation t
 - uses: actions/checkout@v4
   with:
     fetch-depth: 0          # only needed for pr-mode
-- uses: cosmichackerx/kotlin24-ready@v0.1.1
+- uses: cosmichackerx/kotlin24-ready@v0.1.3
   with:
     path: .
     fail-on: error          # error | warning | never
@@ -122,8 +122,8 @@ inserting lines above a finding does not make it "new"; renames are followed). T
 "the scanner reports an error" equals "Gradle fails" for every case, including the *negative* cases (the replacement API must build and must not be flagged).
 Cases with `--fix` are rewritten and built again. CI runs it on every push. The same cases are run on 2.3.20 as an informational job (it never fails the build). Result of that run:
 
-* already **fail on 2.3.20**: `platform()` in a KMP source set, `targetHierarchy`, `compileKotlinTask` / `compileKotlinTaskProvider`, `withWasm` / `withoutCompilations` / `filterCompilations`, `abiValidation { legacyDump { } }`;
-* build on 2.3.20 and **fail on 2.4.20** (the real 2.4 breakage): language version 1.9, every listed Compose compiler option, `abiValidation { enabled }`, `klib { enabled }`, `klib { keepUnsupportedTargets }`.
+* already **fail on 2.3.20**: `platform()` in a KMP source set, `targetHierarchy`, `compileKotlinTask` / `compileKotlinTaskProvider`, `withWasm` / `withoutCompilations` / `filterCompilations`, `abiValidation { legacyDump { } }`, `kotlinOptions { }` on tasks, compilations and the `kotlin { }` extension;
+* build on 2.3.20 and **fail on 2.4.20** (the real 2.4 breakage): language version 1.9, every listed Compose compiler option, `abiValidation { enabled }`, `klib { enabled }`, `klib { keepUnsupportedTargets }`, the removed ABI classes, the `org.jetbrains.kotlin.js` plugin.
 
 What this does and does not prove:
 
@@ -157,7 +157,12 @@ task properties). Section ids and the `Component:` line are a proxy; the guide i
 
 ## Roadmap
 
-See the open issues. Planned: Kotlin/Native task API rules, a pre-commit hook, a Kotlin 2.5 pass when the guide appears, version-catalog `kotlin` version check.
+See the open issues. Planned: Kotlin/Native task API rules, a Kotlin 2.5 pass when the guide appears (a weekly docs watcher opens an issue), a minimum-AGP check (the study found two projects stopped by it), a compile-phase study.
+
+## How well does it work?
+
+A first recall/precision study on public KMP/Compose projects built with Kotlin 2.4.20 is in [kotlin24-ready-study](https://github.com/cosmichackerx/kotlin24-ready-study#results-run-37109947083-2026-10-03-scanner--kotlin24-ready-at-9a22d1d-ie-v012--fix-kotlin-gradle-plugin-2420):
+25 usable repositories, 8 failed on 2.4.20, 4 of those because of the Kotlin removals (2 caught at the time, the other 2 became rules in v0.1.3; in-sample), the other 4 because of SKIE or too-old AGP versions, which the scanner does not model. Small, not random.
 
 ## Related tools
 
