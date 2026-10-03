@@ -1,0 +1,33 @@
+# API names in the Gradle / Build tools API sections of the guide that no rule covers. name<TAB>reason. Written when the watcher started: these were known gaps, not reviewed one by one.
+AbstractKotlinNativeCompile	Kotlin/Native task API; no rule yet (roadmap issue #1)
+BaseKotlinCompile.moduleName	contradicted by the oracle (2.4.20 still accepts it); see README
+CInteropProcess	Kotlin/Native task API; no rule yet (roadmap issue #1)
+ClasspathSnapshotBasedIncrementalCompilationApproachParameters	no rule: internal or rarely used in build scripts
+IncrementalSyncTask.destinationDir	no rule: internal or rarely used in build scripts
+KaptExtension.processors	no rule: internal or rarely used in build scripts
+Kotlin2JsCompile	no rule: internal or rarely used in build scripts
+KotlinAndroidProjectExtension	no rule: internal or rarely used in build scripts
+KotlinCompilation.defaultSourceSetName	contradicted by the oracle (2.4.20 still accepts it); see README
+KotlinCompile	no rule: internal or rarely used in build scripts
+KotlinJvmCompile.moduleName	contradicted by the oracle (2.4.20 still accepts it); see README
+KotlinJvmCompile.parentKotlinOptions	no rule: internal or rarely used in build scripts
+KotlinJvmFactory.createKotlinJvmOptions	no rule: internal or rarely used in build scripts
+KotlinNativeCompile	Kotlin/Native task API; no rule yet (roadmap issue #1)
+KotlinNativeLink	Kotlin/Native task API; no rule yet (roadmap issue #1)
+KotlinTargetComponent.sourcesArtifacts	no rule: internal or rarely used in build scripts
+KotlinTest.excludes	no rule: internal or rarely used in build scripts
+KotlinTest.execHandleFactory	no rule: internal or rarely used in build scripts
+KotlinTest.fileResolver	no rule: internal or rarely used in build scripts
+additionalCompilerOptions	Kotlin/Native task API; no rule yet (roadmap issue #1)
+apiVersion	Kotlin/Native task API; no rule yet (roadmap issue #1)
+defFile	Kotlin/Native task API; no rule yet (roadmap issue #1)
+enabledLanguageFeatures	Kotlin/Native task API; no rule yet (roadmap issue #1)
+konanDataDir	Kotlin/Native task API; no rule yet (roadmap issue #1)
+konanHome	Kotlin/Native task API; no rule yet (roadmap issue #1)
+languageSettings	Kotlin/Native task API; no rule yet (roadmap issue #1)
+moduleName	contradicted by the oracle (2.4.20 still accepts it); see README
+optInAnnotationsInUse	Kotlin/Native task API; no rule yet (roadmap issue #1)
+outputFile	Kotlin/Native task API; no rule yet (roadmap issue #1)
+progressiveMode	Kotlin/Native task API; no rule yet (roadmap issue #1)
+shrunkClasspathSnapshot	no rule: internal or rarely used in build scripts
+workingDirectory	no rule: internal or rarely used in build scripts

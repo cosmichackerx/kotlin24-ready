@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1 - 2026-10-03
+
+* Weekly docs watcher (`scripts/watch/watch_kotlin_docs.py`, `.github/workflows/kotlin-watch.yml`): a new Kotlin compatibility guide (2.5, 2.6 probes), new sections in the 2.4 guide, Gradle / Build tools API names that no rule mentions, stale rule anchors. One deduplicated issue.
+* pre-commit hooks `kotlin24-ready` and `kotlin24-ready-fix`, checked in CI with `pre-commit try-repo`.
+* `action.yml` description shortened to the Marketplace limit of 125 characters, with a CI check (name, description length, branding).
+
 ## 0.1.0 - 2026-10-03
 
 First release.
