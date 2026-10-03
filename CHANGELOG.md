@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+* `agp-minimum` now has an oracle: `tests/oracle/agp_matrix.py` builds a minimal Android + Kotlin app with the real Kotlin Gradle plugin 2.4.20 on AGP 8.1.3, 8.5.1, 8.5.2 and 8.13.2 (plugins block and version catalog) and compares Gradle's refusal with the scanner. New CI step. No scanner change.
+
 ## 0.1.5 - 2026-10-03
 
 * **Files are grouped by Gradle build** (the nearest `settings.gradle(.kts)` above them). Each build gets its own version catalogs and Kotlin Gradle plugin version, so a sample or `build-logic` build with its own settings file no longer inherits the root build's version, and a Java-only Android build next to a Kotlin build is not reported by `agp-minimum`. The reported version is the root build's (the shallowest nested build with one if the root has none).
