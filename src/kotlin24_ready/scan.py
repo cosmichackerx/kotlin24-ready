@@ -130,6 +130,8 @@ class Project:
     def __init__(self):
         self.catalog: dict = {}
         self.kgp: str | None = None
+        self.settings_dirs: set = set()  # directories that hold a settings.gradle[.kts]: each is the root of its own build
+        self.uses_kotlin = False  # some build file or the catalog refers to a Kotlin Gradle plugin
 
     def catalog_version(self, ent: dict):
         if "version" in ent:
@@ -336,6 +338,39 @@ _KO_CONTEXT = (r"(?:tasks\s*\.\s*)?withType\s*(?:<[^>]*Kotlin[^>]*>\s*(?:\(\s*\)
                r"|compilations\s*\.\s*(?:all|configureEach)|(?:tasks\s*\.\s*)?(?:named|register)\s*[<(][^{]*Kotlin[^{]*|kotlin")
 
 
+AGP_MIN = "8.5.2"
+
+
+def agp_minimum(c: Ctx):
+    """The version check the Kotlin plugin itself makes (message seen in the study: "The applied Android Gradle Plugin version (8.1.3) is lower than the minimum supported 8.5.2")."""
+    if not c.p.uses_kotlin:
+        return
+    d = os.path.dirname(c.rel)
+    nested = any(s and (d == s or d.startswith(s + "/")) for s in c.p.settings_dirs)  # a sample / demo build with its own settings file
+
+    def check(off, v):
+        if v and vtuple(v) and version_lt(v, AGP_MIN):
+            c.add("agp-minimum", off, f"Android Gradle Plugin {v} is lower than the {AGP_MIN} that Kotlin Gradle plugin 2.4 needs" + (" (in a nested build with its own settings file: reported as a warning)" if nested else ""),
+                  severity="warning" if nested else None)
+    if c.kind == "catalog":
+        cat = parse_catalog(c.text)
+        for k, ent in cat.get("versions", {}).items():
+            if re.fullmatch(r"agp|androidGradlePlugin|android-gradle-plugin|androidGradle|agpVersion|agp-version", k):
+                check(ent["_off"], ent.get("value"))
+        for sec in ("plugins", "libraries"):
+            for k, ent in cat.get(sec, {}).items():
+                if ent.get("id", "").startswith("com.android.") or ent.get("module") == "com.android.tools.build:gradle":
+                    v = ent.get("version") if "version" in ent else None
+                    check(ent["_off"], v)
+        return
+    if c.kind not in CODE_KINDS:
+        return
+    for m in re.finditer(r"""com\.android\.tools\.build:gradle:(\d[\w.\-]*)""", c.code):
+        check(m.start(), m.group(1))
+    for m in re.finditer(r"""\bid\s*\(?\s*["']com\.android\.[\w.\-]+["']\s*\)?\s*version\s*["'](\d[\w.\-]*)["']""", c.code):
+        check(m.start(), m.group(1))
+
+
 def kotlin_options(c: Ctx):
     """`kotlinOptions` on a Kotlin compile task, compilation or the `kotlin { }` extension fails on 2.4.20 (checked against the real plugin).
     The Android `android { kotlinOptions { } }` form still builds there (it only breaks on AGP 9 built-in Kotlin: see agp9-ready), so it is not flagged."""
@@ -384,7 +419,7 @@ def android_sourcesets(c: Ctx):
 
 
 DETECTORS = [language_version, dependency_handler, target_hierarchy, compilation_accessors, hierarchy_builder,
-             compose_options, abi_validation, abi_removed_types, kotlin_options, kotlin_js_plugin, js_compiler_type, android_sourcesets]
+             compose_options, abi_validation, abi_removed_types, agp_minimum, kotlin_options, kotlin_js_plugin, js_compiler_type, android_sourcesets]
 
 def scan_text(rel: str, text: str, kind: str, project: Project | None = None, disabled=frozenset(), only=frozenset()):
     c = Ctx(rel, text, kind, project or Project())
@@ -430,7 +465,11 @@ def load_project(root: str, files: list) -> Project:
     for full, rel in files:  # a catalog inside the scan wins when the root has none
         if kind_of(os.path.basename(full), rel) == "catalog" and not p.catalog:
             p.catalog = parse_catalog(_read(full))
+    p.settings_dirs = {os.path.dirname(rel) for _, rel in files if os.path.basename(rel).startswith("settings.gradle")}
     p.detect_kgp(texts)
+    kt = re.compile(r"""org\.jetbrains\.kotlin[.:]|\bkotlin\s*\(\s*["']|["']kotlin-(?:android|multiplatform)["']|kotlin-gradle-plugin""")
+    p.uses_kotlin = any(kt.search(x) for x in texts.values()) or \
+        any(str(v) and kt.search(str(v)) for sec in p.catalog.values() for ent in sec.values() for v in ent.values())
     return p
 
 

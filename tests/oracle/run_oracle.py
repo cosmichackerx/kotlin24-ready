@@ -20,7 +20,7 @@ import tempfile
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "src"))
 from kotlin24_ready.scan import apply_fixes, scan  # noqa: E402
 
-SETTINGS = ('pluginManagement { repositories { gradlePluginPortal(); mavenCentral() } }\n'
+SETTINGS = ('pluginManagement { repositories { gradlePluginPortal(); mavenCentral(); google() } }\n'
             'dependencyResolutionManagement { repositories { mavenCentral() } }\nrootProject.name = "o"\n')
 COMPOSE = 'id("org.jetbrains.kotlin.plugin.compose") version "%(v)s"'
 ABI = '@OptIn(org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation::class)\n'
@@ -71,6 +71,8 @@ CASES = {
     "kotlin-js-plugin": ('plugins { kotlin("js") version "%(v)s" }\nkotlin { js { nodejs() } }\n', "help", True, "kotlin-js-plugin", False),
     "abi-removed-multiplatform-extension": (kmp('import org.jetbrains.kotlin.gradle.dsl.abi.AbiValidationMultiplatformExtension\nprintln(AbiValidationMultiplatformExtension::class)'), "help", True, "abi-validation-legacy", False),
     "abi-extension-enabled": (jvm('import org.jetbrains.kotlin.gradle.dsl.abi.AbiValidationExtension\n' + ABI + 'kotlin { extensions.configure<AbiValidationExtension> { enabled = true } }'), "help", True, "abi-validation-legacy", False),
+    # study finding: the Kotlin plugin refuses to apply next to an Android Gradle Plugin older than 8.5.2 (needs the Android SDK that CI runners have)
+    "agp-too-old": ('plugins { id("com.android.library") version "8.1.3"\n kotlin("android") version "%(v)s" }\nandroid { namespace = "o"\n compileSdk = 34 }\n', "help", True, "agp-minimum", False),
     "module-name-ok": (jvm('import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile\ntasks.withType<KotlinJvmCompile>().configureEach { moduleName.set("x") }'), "help", False, None, False),
     # documentation-only: reported as a warning, Gradle still builds
     "js-ir-warning": (kmp('kotlin { js(IR) { nodejs() } }'), "help", False, "js-compiler-type", True),
