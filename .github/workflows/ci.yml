@@ -171,19 +171,19 @@ jobs:
           persist-credentials: false
       - name: PR mode with the published tag (legacy fixture is old, so nothing is new)
         if: github.event_name == 'pull_request'
-        uses: cosmichackerx/kotlin24-ready@v0.1.3
+        uses: cosmichackerx/kotlin24-ready@v0.1.5
         with:
           path: tests/fixtures/legacy-app
           pr-mode: "true"
           fail-on: warning
       - name: Clean fixture passes with the published tag
-        uses: cosmichackerx/kotlin24-ready@v0.1.3
+        uses: cosmichackerx/kotlin24-ready@v0.1.5
         with:
           path: tests/fixtures/clean-app
       - name: Legacy fixture fails with the published tag
         id: bad
         continue-on-error: true
-        uses: cosmichackerx/kotlin24-ready@v0.1.3
+        uses: cosmichackerx/kotlin24-ready@v0.1.5
         with:
           path: tests/fixtures/legacy-app
       - name: It really failed
